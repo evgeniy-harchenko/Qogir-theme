@@ -104,7 +104,7 @@ install() {
   echo "[X-GNOME-Metatheme]"                                                      >> ${THEME_DIR}/index.theme
   echo "GtkTheme=${name}${theme}${color}"                                         >> ${THEME_DIR}/index.theme
   echo "MetacityTheme=${name}${theme}${color}"                                    >> ${THEME_DIR}/index.theme
-  echo "IconTheme=${name}${theme}${ELSE_DARK}"                                    >> ${THEME_DIR}/index.theme
+  echo "IconTheme=${name}${theme,,}${ELSE_DARK,,}"                                >> ${THEME_DIR}/index.theme
   echo "CursorTheme=Adwaita"                                                      >> ${THEME_DIR}/index.theme
   echo "ButtonLayout=menu:minimize,maximize,close"                                >> ${THEME_DIR}/index.theme
 
@@ -724,9 +724,9 @@ uninstall_theme() {
 if [[ "${gdm:-}" != 'true' && "${remove:-}" != 'true' ]]; then
   install_theme
 
-   if [[ "$libadwaita" == 'true' ]]; then
-     uninstall_link && link_theme
-   fi
+  if [[ "$libadwaita" == 'true' ]]; then
+    uninstall_link && link_theme
+  fi
 fi
 
 if [[ "${gdm:-}" != 'true' && "${remove:-}" == 'true' ]]; then
