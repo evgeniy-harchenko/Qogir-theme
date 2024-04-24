@@ -31,7 +31,7 @@
   spacing: 8px;
 }
 
-%search_section_content_item {
+%search-section-content-item {
   @extend %icon_tile;
 
   &:focus, &:hover, &:selected {
@@ -57,12 +57,12 @@
 
 // Search results with icons
 .grid-search-result {
-  @extend %app_well_app;
+  @extend %app-well-app;
 }
 
 // search result provider
 .search-provider-icon {
-  @extend %search_section_content_item;
+  @extend %search-section-content-item;
 
   // content
   .list-search-provider-content {
@@ -85,7 +85,7 @@
 
 // search result listitem
 .list-search-result {
-  @extend %search_section_content_item;
+  @extend %search-section-content-item;
 
   // content
   .list-search-result-content {

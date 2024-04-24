@@ -1,58 +1,22 @@
 
 /* App Icons */
 
-$app_icon_size: 96px;
-$app_folder_size: 720px;
+// Icon tiles in the app grid
+.app-well-app,
+%app-well-app {
+  @extend %overview-icon;
 
-// app icons
-.icon-grid {
-  row-spacing: 12px;
-  column-spacing: 12px;
-  max-row-spacing: 36px;
-  max-column-spacing: 36px;
-  page-padding-top: 24px;
-  page-padding-bottom: 24px;
-  page-padding-left: 18px;
-  page-padding-right: 18px;
-}
+  .overview-icon.overview-icon-with-label {
+    padding: 10px 8px 5px 8px;
 
-// items in the app grid and dash
-.overview-tile {
-  color: $_shell_fg_color;
-  border-radius: $bt_radius * 2;
-  padding: $cont_padding * 2;
-  border: 1px solid transparent;
-  text-align: center;
-  background-color: transparent;
-
-  &:hover {
-    background-color: rgba($selected_bg_color, 0.5);
-    border: 1px solid $selected_bg_color;
-  }
-
-  &:active, &:checked {
-    background-color: rgba($selected_bg_color, 0.75);
-    border: 1px solid $selected_bg_color;
-  }
-
-  // the icon itself
-  .overview-icon {
-    padding: 0;
-    margin: 0;
-    background: none;
-    border: none;
-
-    // item with a label
-    &.overview-icon-with-label {
-      > StBoxLayout {
-        spacing: $cont_padding;
-      }
+    > StBoxLayout {
+      spacing: $cont_padding;
     }
   }
 }
 
 /* App Folders */
-.app-folder {
+.app-well-app.app-folder {
   background-color: rgba(darken($dark_sidebar_icon_bg, 5%), 0.5);
   border: 1px solid darken($dark_sidebar_icon_bg, 3%);
   border-radius: $material_radius;
@@ -63,40 +27,46 @@ $app_folder_size: 720px;
     border-color: lighten($dark_sidebar_icon_bg, 5%);
   }
 
-  &:active, &:checked {
+  &:active {
     background-color: rgba($selected_bg_color, 0.5);
     border: 1px solid $selected_bg_color;
   }
-}
 
-.app-folder-dialog-container {
-  // pad the top with panel height so the folder doesn't overlap the panel on smaller resolutions
-  padding-top: $panel_height;
+  &, &:hover, &:active {
+    .overview-icon {
+      background: none;
+      border: none;
+    }
+  }
 }
 
 // expanded folder
 .app-folder-dialog {
-  width: $app_folder_size;
-  height: $app_folder_size;
   border-radius: $material_radius * 3;
   border: 1px solid rgba($osd_fg_color, 0.03);
-  padding: 0;
+  padding: 6px;
+  space: 6px;
   background-color: rgba($osd_bg_color, 0.9);
 
   & .folder-name-container {
-    padding: 24px 36px 0;
+    padding: 12px 18px 0;
+    spacing: 12px;
 
     & .folder-name-label,
     & .folder-name-entry {
-      @extend %title_1;
+      font-size: 16pt;
+      font-weight: bold;
     }
 
     & .folder-name-entry {
       @extend %search_entry;
-      width: 12em;
+      width: 300px;
     }
 
-    & .icon-button {
+    /* FIXME: this is to keep the label in sync with the entry */
+    & .folder-name-label { padding: 5px 7px; color: $selected_fg_color; }
+
+    & .edit-folder-button {
       @include button(osd);
       padding: 0;
       width: 36px;
@@ -106,24 +76,47 @@ $app_folder_size: 720px;
       & > StIcon { icon-size: 16px }
 
       &:hover { @include button(osd-hover); }
-      &:active { @include button(osd-active); }
-    }
-    
-    & .page-indicators {
-      margin-bottom: $cont_padding * 4;
+      &:active, &:checked { @include button(osd-active); }
     }
   }
+
+  & .icon-grid {
+    row-spacing: $cont_padding * 2;
+    column-spacing: $cont_padding * 3;
+    page-padding-top: 0;
+    page-padding-bottom: 0;
+    page-padding-left: 0;
+    page-padding-right: 0;
+  }
+
+  & .page-indicators {
+    margin-bottom: 18px;
+
+    .page-indicator {
+      padding: 15px 12px;
+    }
+  }
+
+  & StButton#vhandle,
+  & StButton#vhandle:hover,
+  & StButton#vhandle:active { background-color: transparent; }
+}
+
+.app-folder-dialog-container {
+  padding: 6px;
+  width: 600px;
+  height: 600px;
 }
 
 // Running app indicator (also shown in dash)
-.app-grid-running-dot { //running apps indicator
+.app-well-app-running-dot { //running apps indicator
   width: 12px; height: 2px;
   border-radius: 0;
   background-color: $sec_selected_fg_color;
   margin-bottom: 2px;
 }
 
-StWidget.focused .app-grid-running-dot {
+StWidget.focused .app-well-app-running-dot {
   width: 28px; height: 2px;
   background-color: $selected_bg_color;
 }
@@ -136,8 +129,10 @@ StWidget.focused .app-grid-running-dot {
   }
 }
 
-.apps-scroll-view {
-  padding: 0;
+// right-click app menu
+.app-menu,
+.app-well-menu {
+  max-width: 27.25em;
 }
 
 // shutdown and other actions in the grid
@@ -145,67 +140,5 @@ StWidget.focused .app-grid-running-dot {
   background-color: rgba(0,0,0,0.8);
   color: #fff;
   border-radius: 99px;
-  icon-size: $app_icon_size * 0.5;
-}
-
-// App Grid pagination indicators
-$page_indicator_size: 10px;
-
-.page-indicator {
-  padding: $cont_padding $cont_padding * 2 0;
-  transition-duration:400ms;
-
-  .page-indicator-icon {
-    width: $page_indicator_size;
-    height: $page_indicator_size;
-    border-radius: $circular_radius;
-    background-color: white;
-    transition-duration: 400ms;
-  }
-}
-
-// page navigation
-.page-navigation-hint {
-  &.dnd {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  &.next:ltr,
-  &.previous:rtl {
-    background-gradient-start: rgba(255, 255, 255, 0.05);
-    background-gradient-end: transparent;
-    background-gradient-direction: horizontal;
-    border-radius: $material_radius * 1.5 0px 0px $material_radius * 1.5;
-  }
-
-  &.previous:ltr,
-  &.next:rtl {
-    background-gradient-start: transparent;
-    background-gradient-end: rgba(255, 255, 255, 0.05);
-    background-gradient-direction: horizontal;
-    border-radius: 0px $material_radius * 1.5 $material_radius * 1.5 0px;
-  }
-}
-
-.page-navigation-arrow {
-  margin: $cont_padding;
-  padding: $cont_padding * 3;
-  width: $medium_icon_size;
-  height: $medium_icon_size;
-  border-radius: $circular_radius;
-  transition-duration: 100ms;
-  color: rgba(white, 0.8);
-  background-color: transparent;
-
-  > StIcon { color: white; }
-
-  &:hover {
-    background-color: rgba(white, 0.12);
-    color: white;
-  }
-
-  &:active {
-    background-color: rgba(white, 0.2);
-    color: white;
-  }
+  icon-size: 48px;
 }
