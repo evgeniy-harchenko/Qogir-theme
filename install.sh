@@ -4,8 +4,14 @@ ROOT_UID=0
 DEST_DIR=
 
 # Destination directory
-if [ "$UID" -eq "$ROOT_UID" ]; then
+if [[ "$UID" -eq "$ROOT_UID" ]]; then
   DEST_DIR="/usr/share/themes"
+elif [[ -n "$XDG_DATA_HOME" ]]; then
+  DEST_DIR="$XDG_DATA_HOME/themes"
+elif [[ -d "$HOME/.themes" ]]; then
+  DEST_DIR="$HOME/.themes"
+elif [[ -d "$HOME/.local/share/themes" ]]; then
+  DEST_DIR="$HOME/.local/share/themes"
 else
   DEST_DIR="$HOME/.themes"
 fi
@@ -26,9 +32,11 @@ theme_color='default'
 SASSC_OPT="-M -t expanded"
 
 if [[ "$(command -v gnome-shell)" ]]; then
-  gnome-shell --version
+  echo && gnome-shell --version && echo
   SHELL_VERSION="$(gnome-shell --version | cut -d ' ' -f 3 | cut -d . -f -1)"
-  if [[ "${SHELL_VERSION:-}" -ge "44" ]]; then
+  if [[ "${SHELL_VERSION:-}" -ge "46" ]]; then
+    GS_VERSION="46-0"
+  elif [[ "${SHELL_VERSION:-}" -ge "44" ]]; then
     GS_VERSION="44-0"
   elif [[ "${SHELL_VERSION:-}" -ge "42" ]]; then
     GS_VERSION="42-0"
@@ -37,9 +45,9 @@ if [[ "$(command -v gnome-shell)" ]]; then
   else
     GS_VERSION="3-32"
   fi
-  else
-    echo "'gnome-shell' not found, using styles for last gnome-shell version available."
-    GS_VERSION="44-0"
+else
+  echo -e "\n'gnome-shell' not found, using styles for last gnome-shell version available.\n"
+  GS_VERSION="46-0"
 fi
 
 usage() {
@@ -82,8 +90,9 @@ install() {
 
   [[ ${color} == '-Dark' ]] && local ELSE_DARK=${color}
   [[ ${color} == '-Light' ]] && local ELSE_LIGHT=${color}
+  [[ "${window}" == 'round' ]] && local WM_CORNER='-Round'
 
-  local THEME_DIR=${dest}/${name}${theme}${color}
+  local THEME_DIR=${dest}/${name}${theme}${WM_CORNER}${color}
 
   [[ -d ${THEME_DIR} ]] && rm -rf ${THEME_DIR}
 
@@ -97,14 +106,14 @@ install() {
 
   echo "[Desktop Entry]"                                                          >> ${THEME_DIR}/index.theme
   echo "Type=X-GNOME-Metatheme"                                                   >> ${THEME_DIR}/index.theme
-  echo "Name=${name}${theme}${color}"                                             >> ${THEME_DIR}/index.theme
+  echo "Name=${name}${theme}${WM_CORNER}${color}"                                 >> ${THEME_DIR}/index.theme
   echo "Comment=An Clean Gtk+ theme based on Flat Design"                         >> ${THEME_DIR}/index.theme
   echo "Encoding=UTF-8"                                                           >> ${THEME_DIR}/index.theme
   echo ""                                                                         >> ${THEME_DIR}/index.theme
   echo "[X-GNOME-Metatheme]"                                                      >> ${THEME_DIR}/index.theme
-  echo "GtkTheme=${name}${theme}${color}"                                         >> ${THEME_DIR}/index.theme
-  echo "MetacityTheme=${name}${theme}${color}"                                    >> ${THEME_DIR}/index.theme
-  echo "IconTheme=${name}${theme,,}${ELSE_DARK,,}"                                >> ${THEME_DIR}/index.theme
+  echo "GtkTheme=${name}${theme}${WM_CORNER}${color}"                             >> ${THEME_DIR}/index.theme
+  echo "MetacityTheme=${name}${theme}${WM_CORNER}${color}"                        >> ${THEME_DIR}/index.theme
+  echo "IconTheme=${name}${theme}${ELSE_DARK}"                                    >> ${THEME_DIR}/index.theme
   echo "CursorTheme=Adwaita"                                                      >> ${THEME_DIR}/index.theme
   echo "ButtonLayout=menu:minimize,maximize,close"                                >> ${THEME_DIR}/index.theme
 
@@ -208,25 +217,17 @@ install() {
   # METACITY
   mkdir -p                                                                           ${THEME_DIR}/metacity-1
 
-  if [[ "$window" == 'round' ]]; then
-    cp -r ${SRC_DIR}/src/metacity-1/assets-Round                                     ${THEME_DIR}/metacity-1/assets
-    cp -r ${SRC_DIR}/src/metacity-1/metacity-theme-3-Round.xml                       ${THEME_DIR}/metacity-1/metacity-theme-3.xml
-    cp -r ${SRC_DIR}/src/metacity-1/metacity-theme-1${ELSE_LIGHT}-Round.xml          ${THEME_DIR}/metacity-1/metacity-theme-1.xml
+  if [[ "$square" == 'true' ]]; then
+    cp -r ${SRC_DIR}/src/metacity-1/assets${ELSE_LIGHT}-Win/*.png                    ${THEME_DIR}/metacity-1
+    cp -r ${SRC_DIR}/src/metacity-1/metacity-theme-3-Win.xml                         ${THEME_DIR}/metacity-1/metacity-theme-3.xml
   else
-    if [[ "$square" == 'true' ]]; then
-      cp -r ${SRC_DIR}/src/metacity-1/assets${ELSE_LIGHT}-Win/*.png                  ${THEME_DIR}/metacity-1
-      cp -r ${SRC_DIR}/src/metacity-1/metacity-theme-3-Win.xml                       ${THEME_DIR}/metacity-1/metacity-theme-3.xml
-      cp -r ${SRC_DIR}/src/metacity-1/metacity-theme-1${ELSE_LIGHT}-Win.xml          ${THEME_DIR}/metacity-1/metacity-theme-1.xml
-    else
-      cp -r ${SRC_DIR}/src/metacity-1/assets${ELSE_LIGHT}/*.png                      ${THEME_DIR}/metacity-1
-      cp -r ${SRC_DIR}/src/metacity-1/metacity-theme-3.xml                           ${THEME_DIR}/metacity-1/metacity-theme-3.xml
-      cp -r ${SRC_DIR}/src/metacity-1/metacity-theme-1${ELSE_LIGHT}.xml              ${THEME_DIR}/metacity-1/metacity-theme-1.xml
-    fi
+    cp -r ${SRC_DIR}/src/metacity-1/assets${WM_CORNER}                               ${THEME_DIR}/metacity-1/assets
+    cp -r ${SRC_DIR}/src/metacity-1/metacity-theme-3${WM_CORNER}.xml                 ${THEME_DIR}/metacity-1/metacity-theme-3.xml
   fi
 
   cp -r ${SRC_DIR}/src/metacity-1/thumbnail${ELSE_LIGHT}.png                         ${THEME_DIR}/metacity-1/thumbnail.png
   cd ${THEME_DIR}/metacity-1
-  ln -s metacity-theme-1.xml metacity-theme-2.xml
+  ln -s metacity-theme-3.xml metacity-theme-1.xml && ln -s metacity-theme-3.xml metacity-theme-2.xml
 
   # OTHER
   cp -r ${SRC_DIR}/src/plank                                                         ${THEME_DIR}
@@ -242,20 +243,21 @@ install_xfwm() {
 
   [[ ${color} == '-Dark' ]] && local ELSE_DARK=${color}
   [[ ${color} == '-Light' ]] && local ELSE_LIGHT=${color}
+  [[ ${window} == 'round' ]] && local WM_CORNER='-Round'
 
-  local THEME_DIR=${dest}/${name}${color}${screen}
+  local THEME_DIR=${dest}/${name}${WM_CORNER}${color}${screen}
 
   [[ ${screen} != '' && -d ${THEME_DIR} ]] && rm -rf ${THEME_DIR}
 
   # XFWM4
-  mkdir -p                                                                           ${THEME_DIR}/xfwm4
+  mkdir -p                                                                              ${THEME_DIR}/xfwm4
 
   if [[ "$square" == 'true' ]]; then
-    cp -r ${SRC_DIR}/src/xfwm4/themerc-Win${ELSE_LIGHT}                              ${THEME_DIR}/xfwm4/themerc
-    cp -r ${SRC_DIR}/src/xfwm4/assets-Win${ELSE_LIGHT}${screen}/*.png                ${THEME_DIR}/xfwm4
+    cp -r ${SRC_DIR}/src/xfwm4/themerc-Win${WM_CORNER}${ELSE_LIGHT}                     ${THEME_DIR}/xfwm4/themerc
+    cp -r ${SRC_DIR}/src/xfwm4/assets-Win${WM_CORNER}${ELSE_LIGHT}${screen}/*.png       ${THEME_DIR}/xfwm4
   else
-    cp -r ${SRC_DIR}/src/xfwm4/themerc${ELSE_LIGHT}                                  ${THEME_DIR}/xfwm4/themerc
-    cp -r ${SRC_DIR}/src/xfwm4/assets${ELSE_LIGHT}${screen}/*.png                    ${THEME_DIR}/xfwm4
+    cp -r ${SRC_DIR}/src/xfwm4/themerc${WM_CORNER}${ELSE_LIGHT}                         ${THEME_DIR}/xfwm4/themerc
+    cp -r ${SRC_DIR}/src/xfwm4/assets${WM_CORNER}${ELSE_LIGHT}${screen}/*.png           ${THEME_DIR}/xfwm4
   fi
 }
 
@@ -268,7 +270,7 @@ uninstall() {
 
   local THEME_DIR=${dest}/${name}${theme}${color}${screen}
 
-  [[ -d "$THEME_DIR" ]] && rm -rf "$THEME_DIR" && echo -e "Uninstalling "$THEME_DIR" ..."
+  [[ -d "$THEME_DIR" ]] && rm -rf "$THEME_DIR"{'','-hdpi','-xhdpi'} && echo -e "Uninstalling "$THEME_DIR" ..."
 }
 
 # GDM Theme
@@ -336,12 +338,13 @@ install_gdm() {
 
   [[ "${gcolor}" == '-Light' ]] && local ELSE_LIGHT="${gcolor}"
   [[ "${gcolor}" == '-Dark' ]] && local ELSE_DARK="${gcolor}"
+  [[ "${window}" == 'round' ]] && local WM_CORNER='-Round'
 
-  local THEME_TEMP="/tmp/${1}${2}${3}"
+  local THEME_TEMP="/tmp/${1}${2}${WM_CORNER}${3}"
 
   theme_tweaks && install_gdm_deps && install_theme_color
 
-  echo -e "\nInstall ${1}${2}${3} GDM Theme..."
+  echo -e "\nInstall ${1}${2}${WM_CORNER}${3} GDM Theme..."
 
   rm -rf "${THEME_TEMP}"
   mkdir -p                                                                                  "${THEME_TEMP}/gnome-shell"
@@ -514,14 +517,17 @@ while [[ $# -gt 0 ]]; do
         case "${tweak}" in
           image)
             image='true'
+            echo -e "Install Nautilus with background image version ...\n"
             shift
             ;;
           round)
             window='round'
+            echo -e "Install Round window version ...\n"
             shift
             ;;
           square)
             square='true'
+            echo -e "Install Square titlebutton version ...\n"
             shift
             ;;
           -*|--*)
@@ -625,7 +631,9 @@ link_libadwaita() {
   local theme="${3}"
   local lcolor="${4}"
 
-  local THEME_DIR="${1}/${2}${3}${4}"
+  [[ "${window}" == 'round' ]] && local WM_CORNER='-Round'
+
+  local THEME_DIR=${dest}/${name}${theme}${WM_CORNER}${lcolor}
 
   echo -e "\nLink '$THEME_DIR/gtk-4.0' to '${HOME}/.config/gtk-4.0' for libadwaita..."
 
@@ -641,17 +649,14 @@ tweaks_temp() {
 
 install_image() {
   sed -i "/\$background:/s/default/image/" ${SRC_DIR}/src/_sass/_tweaks-temp.scss
-  echo -e "Install Nautilus with background image version ..."
 }
 
 install_win_titlebutton() {
   sed -i "/\$titlebutton:/s/circle/square/" ${SRC_DIR}/src/_sass/_tweaks-temp.scss
-  echo -e "Install Square titlebutton version ..."
 }
 
 install_round_window() {
   sed -i "/\$window:/s/default/round/" ${SRC_DIR}/src/_sass/_tweaks-temp.scss
-  echo -e "Install Round window version ..."
 }
 
 install_theme_color() {
@@ -719,7 +724,7 @@ uninstall_theme() {
   done
 }
 
-./clean-old-theme.sh
+${SRC_DIR}/clean-old-theme.sh
 
 if [[ "${gdm:-}" != 'true' && "${remove:-}" != 'true' ]]; then
   install_theme
