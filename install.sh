@@ -25,6 +25,7 @@ ICON_NAME=''
 
 themes=()
 colors=()
+lcolors=()
 
 image=''
 window=''
@@ -37,7 +38,9 @@ SASSC_OPT="-M -t expanded"
 if [[ "$(command -v gnome-shell)" ]]; then
   echo && gnome-shell --version && echo
   SHELL_VERSION="$(gnome-shell --version | cut -d ' ' -f 3 | cut -d . -f -1)"
-  if [[ "${SHELL_VERSION:-}" -ge "46" ]]; then
+  if [[ "${SHELL_VERSION:-}" -ge "47" ]]; then
+    GS_VERSION="47-0"
+  elif [[ "${SHELL_VERSION:-}" -ge "46" ]]; then
     GS_VERSION="46-0"
   elif [[ "${SHELL_VERSION:-}" -ge "44" ]]; then
     GS_VERSION="44-0"
@@ -50,7 +53,7 @@ if [[ "$(command -v gnome-shell)" ]]; then
   fi
 else
   echo -e "\n'gnome-shell' not found, using styles for last gnome-shell version available.\n"
-  GS_VERSION="46-0"
+  GS_VERSION="47-0"
 fi
 
 usage() {
@@ -93,7 +96,7 @@ install() {
 
   [[ ${color} == '-Dark' ]] && local ELSE_DARK=${color}
   [[ ${color} == '-Light' ]] && local ELSE_LIGHT=${color}
-  [[ "${window}" == 'round' ]] && local WM_CORNER='-Round'
+  [[ ${window} == 'round' ]] && local WM_CORNER='-Round'
 
   local THEME_DIR=${dest}/${name}${theme}${WM_CORNER}${color}
 
@@ -552,6 +555,10 @@ if [[ "${#colors[@]}" -eq 0 ]] ; then
   colors=("${COLOR_VARIANTS[@]}")
 fi
 
+if [[ "${#lcolors[@]}" -eq 0 ]] ; then
+  lcolors=("${COLOR_VARIANTS[1]}")
+fi
+
 # check command avalibility
 function has_command() {
   command -v $1 > /dev/null
@@ -624,11 +631,11 @@ uninstall() {
   local dest="${1}"
   local name="${2}"
   local theme="${3}"
-  local window="${4}"
+  local corner="${4}"
   local color="${5}"
   local screen="${6}"
 
-  local THEME_DIR="${dest}/${name}${theme}${window}${color}${screen}"
+  local THEME_DIR="${dest}/${name}${theme}${corner}${color}${screen}"
 
   if [[ -d "$THEME_DIR" ]]; then
     rm -rf "$THEME_DIR"
@@ -708,8 +715,8 @@ theme_tweaks() {
 }
 
 link_theme() {
-  for theme in "${THEME_VARIANTS[0]}"; do
-    for lcolor in "${COLOR_VARIANTS[1]}"; do
+  for theme in "${themes[@]}"; do
+    for lcolor in "${lcolors[@]}"; do
       link_libadwaita "${dest:-$DEST_DIR}" "${name:-$THEME_NAME}" "$theme" "$lcolor"
     done
   done
@@ -731,10 +738,10 @@ install_theme() {
 
 uninstall_theme() {
   for theme in "${THEME_VARIANTS[@]}"; do
-    for window in '' '-Round'; do
+    for corner in '' '-Round'; do
       for color in "${COLOR_VARIANTS[@]}"; do
         for screen in '' '-hdpi' '-xhdpi'; do
-          uninstall "${dest:-$DEST_DIR}" "${name:-$THEME_NAME}" "${theme}" "${window}" "${color}" "${screen}"
+          uninstall "${dest:-$DEST_DIR}" "${name:-$THEME_NAME}" "${theme}" "${corner}" "${color}" "${screen}"
         done
       done
     done
@@ -742,11 +749,11 @@ uninstall_theme() {
 }
 
 clean_theme() {
-  for theme in '' '-manjaro' '-ubuntu'; do
-    for color in '' '-light' '-dark'; do
-      uninstall "${dest:-$DEST_DIR}" "${name:-$THEME_NAME}" "${theme}" "${color}"
-    done
-  done
+#  for theme in '' '-manjaro' '-ubuntu'; do
+#    for color in '' '-light' '-dark'; do
+#      uninstall "${dest:-$DEST_DIR}" "${name:-$THEME_NAME}" "${theme}" "${color}"
+#    done
+#  done
 
   if [[ "$DEST_DIR" == "$HOME/.themes" ]]; then
     local dest="$HOME/.local/share/themes"
@@ -755,10 +762,10 @@ clean_theme() {
   fi
 
   for theme in "${THEME_VARIANTS[@]}"; do
-    for window in '' '-Round'; do
+    for corner in '' '-Round'; do
       for color in "${COLOR_VARIANTS[@]}"; do
         for screen in '' '-hdpi' '-xhdpi'; do
-          uninstall "${dest:-$DEST_DIR}" "${name:-$THEME_NAME}" "${theme}" "${window}" "${color}" "${screen}"
+          uninstall "${dest:-$DEST_DIR}" "${name:-$THEME_NAME}" "${theme}" "${corner}" "${color}" "${screen}"
         done
       done
     done
